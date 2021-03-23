@@ -285,25 +285,30 @@ int compute_L_or_Wabcd(Task* target, Task* c, Task* d,
     int z_u = res;
     int part_id = target->part_id;
     bool was_change = true;
-    // std::cout << "curr tast: i = " << target->i << "  j = " << target->j << std::endl;
+    std::cout << "curr tast: i = " << target->i << "  j = " << target->j << std::endl;
+    std::cout << "task c : i = " << c->i << " j = " << c->j << std::endl;
+    if (d) {
+        std::cout << "task d : i = " << d->i << " j = " << d->j << std::endl;
+    }
+    std::cout << "/////////////////" << std::endl;
     while (was_change) {
-        // if (is_L) {
-        //     std::cout << "current L = " << res << std::endl;
-        // } else {
-        //     std::cout << "current W = " << res << std::endl;
-        // }
-        // std::cout << "Z:\n";
-        // for (int i = 0; i < z.size(); i++) {
-        //     std::cout << "\tz[" << i << "] = " << z[i] << std::endl; 
-        // }
-        // std::cout << "\tz_u = " << z_u << std::endl; 
-        // std::cout << "//////\n";
-        // std::cout << "I:\n";
-        // for (int i = 0; i < z.size(); i++) {
-        //     std::cout << "\tI[" << i << "] = " << I[i] << std::endl; 
-        // }
-        // std::cout << "\tI_u = " << I_u << std::endl; 
-        // std::cout << "######\n";
+        if (is_L) {
+            std::cout << "current L = " << res << std::endl;
+        } else {
+            std::cout << "current W = " << res << std::endl;
+        }
+        std::cout << "Z:\n";
+        for (int i = 0; i < z.size(); i++) {
+            std::cout << "\tz[" << i << "] = " << z[i] << std::endl; 
+        }
+        std::cout << "\tz_u = " << z_u << std::endl; 
+        std::cout << "//////\n";
+        std::cout << "I:\n";
+        for (int i = 0; i < z.size(); i++) {
+            std::cout << "\tI[" << i << "] = " << I[i] << std::endl; 
+        }
+        std::cout << "\tI_u = " << I_u << std::endl; 
+        std::cout << "######\n";
         was_change = false;
         int new_I = 0;
         for (int i = 0; i < size; i++) {
@@ -416,17 +421,16 @@ void WCDO(std::vector<std::unordered_map<int, Task*>> &graphs, WinType &G_u) {
     int it = 0;
     while (was_change) {
         was_change = false;
-        // std::cout << "it = " << it << std::endl;
+        std::cout << "it = " << it << std::endl;
         for (auto & graph : graphs) {
             for (auto & task : graph) {
-                // std::cout << "CURRENT task: i = " << task.second->i << "  j = " << task.second->j << std::endl;
+                std::cout << "CURRENT task: i = " << task.second->i << "  j = " << task.second->j << std::endl;
                 int R_ab = Rab(task.second, graphs.size(), G_u);
                 int old_R = task.second->R;
                 task.second->R = R_ab;
                 if (task.second->R != old_R) was_change = true;
             }
         }
-        // std::cout << "it = " << it << std::endl;
         update_jitters(graphs);
         it++;
     }
