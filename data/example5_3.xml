@@ -1,0 +1,19 @@
+<system>
+    <partition id="0" proc="0" maj_fr="120">
+        <task id="0" prio="5" bcet="5" wcet="20" period="40" deadline="40"/>
+        <window start="0" stop="120"/>
+    </partition>
+    <partition id="1" proc="1" maj_fr="120">
+        <task id="2" prio="3" bcet="5" wcet="5" period="60" deadline="60"/>
+        <window start="0" stop="120"/>
+    </partition>
+    <partition id="2" proc="2" maj_fr="120">
+        <task id="1" prio="4" bcet="10" wcet="10" period="40" deadline="40"/>
+        <task id="3" prio="2" bcet="10" wcet="10" period="60" deadline="60"/>
+        <task id="4" prio="1" bcet="10" wcet="10" period="60" deadline="60"/>
+        <window start="0" stop="120"/>
+    </partition>
+    <tlink src="0" dist="1" bctt="0" wctt="0"/>
+    <tlink src="2" dist="3" bctt="0" wctt="0"/>
+    <tlink src="3" dist="4" bctt="0" wctt="0"/>
+</system>
