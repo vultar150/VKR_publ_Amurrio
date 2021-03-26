@@ -1,6 +1,6 @@
 <system>
     <partition id="0" proc="0" maj_fr="60">
-        <task id="0" prio="5" bcet="5" wcet="20" period="30" deadline="30"/>
+        <task id="0" prio="5" bcet="5" wcet="20" period="60" deadline="60"/>
         <window start="0" stop="60"/>
     </partition>
     <partition id="1" proc="1" maj_fr="60">
@@ -8,7 +8,7 @@
         <window start="0" stop="60"/>
     </partition>
     <partition id="2" proc="2" maj_fr="60">
-        <task id="1" prio="4" bcet="10" wcet="10" period="30" deadline="30"/>
+        <task id="1" prio="4" bcet="10" wcet="10" period="60" deadline="60"/>
         <task id="3" prio="2" bcet="10" wcet="10" period="60" deadline="60"/>
         <task id="4" prio="1" bcet="10" wcet="10" period="60" deadline="60"/>
         <window start="0" stop="60"/>
