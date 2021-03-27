@@ -23,7 +23,7 @@ void setNumGraph(const int & id,
                  const int & graphNum,
                  std::vector<std::unordered_map<int, Task*>> & graphs);
 
-void initPhaseAndJitters(Task * task, int & critPathWCET);
+void initPhaseAndJitters(Task * task, float & critPathWCET);
 
 void initGraphsJittersAndPhases(
                   std::unordered_map<int, Task*> & tasks,
@@ -37,31 +37,29 @@ void setHp(std::vector<std::unordered_map<int, Task*>> & graphs,
 void assignHigherPrioritySet(std::vector<std::unordered_map<int, Task*>> & graphs,
                              Processors & processors);
 
-int mod(int a, int b);
+float mod(float a, float b);
 
-int upper(int a, int b);
+float delta_ijk(Task* task_ij, Task* task_ik);
 
-int delta_ijk(Task* task_ij, Task* task_ik);
+float Wik(std::unordered_map<int, Task*> &hp_i, Task* k, float t);
 
-int Wik(std::unordered_map<int, Task*> &hp_i, Task* k, int t);
+float interference(std::unordered_map<int, Task*> &hp_i, Task* k, float z);
 
-int interference(std::unordered_map<int, Task*> &hp_i, Task* k, int z);
+float approximation_func(std::unordered_map<int, Task*> &hp_i, float z);
 
-int approximation_func(std::unordered_map<int, Task*> &hp_i, int z);
-
-int compute_L_or_Wabcd(Task* target, Task* c, Task* d, 
-                       int p, int p0, int delta, int size, 
+float compute_L_or_Wabcd(Task* target, Task* c, Task* d, 
+                       int p, int p0, float delta, int size, 
                        bool is_L, WinType &G_u);
 
-int Rabcd(Task* target, Task* c, Task* d, int p, int p0, int delta, int size, WinType &G_u);
+float Rabcd(Task* target, Task* c, Task* d, int p, int p0, float delta, int size, WinType &G_u);
 
-int R_max_p(Task* target, Task* c, Task* d, int p0, int delta, int size, WinType &G_u);
+float R_max_p(Task* target, Task* c, Task* d, int p0, float delta, int size, WinType &G_u);
 
-int R_max_d(Task* target, Task* c, int size, WinType &G_u);
+float R_max_d(Task* target, Task* c, int size, WinType &G_u);
 
-int R_max_c(Task* target, int size, WinType &G_u);
+float R_max_c(Task* target, int size, WinType &G_u);
 
-int Rab(Task* target, int size, WinType &G_u);
+float Rab(Task* target, int size, WinType &G_u);
 
 void update_jitters(std::vector<std::unordered_map<int, Task*>> &graphs);
 

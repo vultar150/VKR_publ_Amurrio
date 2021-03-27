@@ -28,13 +28,13 @@ public:
     int part_id;
     int priority;
     int processorNum;
-    int T; // period
-    int bcet;
-    int wcet;
-    int J; // jitter
-    int phi; // phase
-    int R; // WCRT
-    int R_b; // lower bound of BCRT
+    float T; // period
+    float bcet;
+    float wcet;
+    float J; // jitter
+    float phi; // phase
+    float R; // WCRT
+    float R_b; // lower bound of BCRT
     bool isMessage;
     bool critPathWasComputed;
     std::vector<Task*> predecessors;
@@ -42,7 +42,7 @@ public:
     std::vector<std::unordered_map<int, Task*>> hp;
 
     Task(int i, int j, int major_frame, int part_id, int priority,
-         int processorNum, int T, int bcet, int wcet, bool isMessage = false, 
+         int processorNum, float T, float bcet, float wcet, bool isMessage = false, 
          bool critPathWasComputed = false);
     void print();
 };
