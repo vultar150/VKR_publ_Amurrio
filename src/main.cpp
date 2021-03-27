@@ -35,10 +35,9 @@ int main(int argc, char *argv[]) {
     int maxId = -1;
     setTasks(xmlNode, tasks, usd, processors, maxId, G_u);
     setLinks(xmlNode, tasks, usd, maxId);
-    // tasks[targetTask]->_isTarget = true;
     initGraphsJittersAndPhases(tasks, usd, graphs, processors);
     assignHigherPrioritySet(graphs, processors);
-    
+
     WCDO(graphs, G_u);
 
     // std::cout << "G_u info: /////////////////////////" << std::endl;
@@ -59,6 +58,10 @@ int main(int argc, char *argv[]) {
             task.second->print();
         }
         std::cout << std::endl;
+    }
+
+    for (auto & task : tasks) {
+        delete task.second;
     }
     // std::cout << "//////////////////////////////////////" << std::endl;
     // std::cout << std::endl;

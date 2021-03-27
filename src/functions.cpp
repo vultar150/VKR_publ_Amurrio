@@ -6,6 +6,9 @@
 #include "functions.h"
 
 
+const float eps = 0.001;
+
+
 void setTasks(XMLNode *xmlNode,
               std::unordered_map<int,Task*> & tasks,
               std::unordered_map<int, bool> & usd,
@@ -30,17 +33,18 @@ void setTasks(XMLNode *xmlNode,
         std::vector<TaskPosition> taskPos;
         XMLElement * pListTasks = pListElement->FirstChildElement("task");
         while (pListTasks != nullptr) {
-            int id, priority, period, BCET, WCET; // i, j, major_frame, part_id, priority, processorNum, T, bcet, wcet
+            int id, priority;
+            float period, BCET, WCET; // i, j, major_frame, part_id, priority, processorNum, T, bcet, wcet
             eResult = pListTasks->QueryIntAttribute("id", &id);
             XMLCheckResult(eResult);
             if (maxId < id) maxId = id;
             eResult = pListTasks->QueryIntAttribute("prio", &priority);
             XMLCheckResult(eResult);
-            eResult = pListTasks->QueryIntAttribute("period", &period);
+            eResult = pListTasks->QueryFloatAttribute("period", &period);
             XMLCheckResult(eResult);
-            eResult = pListTasks->QueryIntAttribute("bcet", &BCET);
+            eResult = pListTasks->QueryFloatAttribute("bcet", &BCET);
             XMLCheckResult(eResult);
-            eResult = pListTasks->QueryIntAttribute("wcet", &WCET);
+            eResult = pListTasks->QueryFloatAttribute("wcet", &WCET);
             XMLCheckResult(eResult);
             usd[id] = false;
             tasks[id] = new Task(-1, id, major_frame, partitionId, priority,
@@ -60,9 +64,9 @@ void setTasks(XMLNode *xmlNode,
             int ET = start - left;
             if (ET > 0) {
                 Task* win = new Task(-1, count, major_frame, partitionId, -1,
-                                     processorNum, major_frame, ET, ET);
-                win->phi = left; win->J = 0;
-                win->R_b = win->R = win->phi + ET;
+                                     processorNum, (float)major_frame, (float)ET, (float)ET);
+                win->phi = left; win->J = 0.;
+                win->R_b = win->R = win->phi + (float)ET;
                 G_u[partitionId][count] = win;
                 count++;
             }
@@ -72,9 +76,9 @@ void setTasks(XMLNode *xmlNode,
         int ET = major_frame - left;
         if (ET > 0) {
             Task* win = new Task(-1, count, major_frame, partitionId, -1,
-                                 processorNum, major_frame, ET, ET);
-            win->phi = left; win->J = 0;
-            win->R_b = win->R = win->phi + ET;
+                                 processorNum, (float)major_frame, (float)ET, (float)ET);
+            win->phi = left; win->J = 0.;
+            win->R_b = win->R = win->phi + (float)ET;
             G_u[partitionId][count] = win;
             count++;
         }
@@ -92,17 +96,18 @@ void setLinks(XMLNode *xmlNode, std::unordered_map<int,Task*> & tasks,
 
     int mf = (*tasks.begin()).second->major_frame;
     int messageId = maxId + 1;
-    int period = 0;
+    float period = 0.;
 
     while (pListElement != nullptr) {
-        int src, dst, bctt, wctt;
+        int src, dst;
+        float bctt, wctt;
         eResult = pListElement->QueryIntAttribute("src", &src);
         XMLCheckResult(eResult);
         eResult = pListElement->QueryIntAttribute("dist", &dst);
         XMLCheckResult(eResult);
-        eResult = pListElement->QueryIntAttribute("bctt", &bctt);
+        eResult = pListElement->QueryFloatAttribute("bctt", &bctt);
         XMLCheckResult(eResult);
-        eResult = pListElement->QueryIntAttribute("wctt", &wctt);
+        eResult = pListElement->QueryFloatAttribute("wctt", &wctt);
         XMLCheckResult(eResult);
         if (wctt > 0) {
             period = tasks[src]->T;
@@ -147,13 +152,13 @@ void setNumGraph(const int & id,
 }
 
 
-void initPhaseAndJitters(Task * task, int & critPathWCET) {
+void initPhaseAndJitters(Task * task, float & critPathWCET) {
     if (task->critPathWasComputed) {
         critPathWCET = task->R;
         return;
     }
-    int predCritPathBCET = 0;
-    int predCritPathWCET = 0;
+    float predCritPathBCET = 0;
+    float predCritPathWCET = 0;
     for (auto & pred : task->predecessors) {
         initPhaseAndJitters(pred, critPathWCET);
         if (predCritPathBCET < pred->phi + pred->bcet) {
@@ -181,7 +186,7 @@ void initGraphsJittersAndPhases(
         int id = task.second->j;
         if (task.second->successors.empty())
         {
-            int critPathWCET = 0;
+            float critPathWCET = 0;
             initPhaseAndJitters(task.second, critPathWCET);
         }
         if (!usd[id]) {
@@ -230,52 +235,36 @@ void assignHigherPrioritySet(std::vector<std::unordered_map<int, Task*>> & graph
 }
 
 
-int mod(int a, int b) {
-    return a >= 0 ? a % b : b - abs(a) % b;
+float mod(float a, float b) {
+    return a >= 0 ? fmod(a, b) : b - fmod(abs(a),b);
 }
 
 
-int upper(int a, int b) {
-    return a < 0 ? a / b : (a % b == 0 ? a / b : (a / b) + 1);
-}
-
-
-int delta_ijk(Task* task_ij, Task* task_ik) {
+float delta_ijk(Task* task_ij, Task* task_ik) {
     return task_ij->T - mod(task_ik->phi + task_ik->J - task_ij->phi, task_ij->T);
 }
 
 
-int Wik(std::unordered_map<int, Task*> &hp_i, Task* k, int t) {
-    int sum = 0;
+float Wik(std::unordered_map<int, Task*> &hp_i, Task* k, float t) {
+    float sum = 0;
     for (auto & j : hp_i) {
-        int T = j.second->T;
-        int delta = delta_ijk(j.second, k);
-        sum += ( ( (j.second->J + delta) / T) + upper(t - delta, T)) * j.second->wcet;
+        float T = j.second->T;
+        float delta = delta_ijk(j.second, k);
+        sum += ( floor( (j.second->J + delta) / T ) + 
+                 ceil( (t - delta) / T) ) * j.second->wcet;
     }
     return sum;
 }
 
 
-int interference(std::unordered_map<int, Task*> &hp_i, Task* k, int z) {
-    // bool was_change = true;
-    // was_change = false;
-    // int old_W = W;
-    // W = z + Wik(hp_i, k, W);
-    // if (W != old_W) was_change = true;
-    // int W = z;
-    // while (was_change) {
-    //     was_change = false;
-    //     int old_W = W;
-    //     W = z + Wik(hp_i, k, W);
-    //     if (W != old_W) was_change = true;
-    // }
+float interference(std::unordered_map<int, Task*> &hp_i, Task* k, float z) {
     return Wik(hp_i, k, z);
 }
 
 
-int approximation_func(std::unordered_map<int, Task*> &hp_i, int z) {
-    int max = 0;
-    int I = 0;
+float approximation_func(std::unordered_map<int, Task*> &hp_i, float z) {
+    float max = 0;
+    float I = 0;
     for (auto & k : hp_i) {
        I = interference(hp_i, k.second, z);
        if (max < I) { max = I; }
@@ -284,96 +273,50 @@ int approximation_func(std::unordered_map<int, Task*> &hp_i, int z) {
 }
 
 
-int compute_L_or_Wabcd(Task* target, Task* c, Task* d,
-                       int p, int p0, int delta, int size,
+float compute_L_or_Wabcd(Task* target, Task* c, Task* d,
+                       int p, int p0, float delta, int size,
                        bool is_L, WinType &G_u) {
-    int res = p * target->wcet;
-    std::vector<int> I(size, 0);
+    float res = p * target->wcet;
+    std::vector<float> I(size, 0.);
     int part_id = target->part_id;
     bool was_change = true;
-    // std::cout << "curr tast: i = " << target->i << "  j = " << target->j << std::endl;
-    // std::cout << "task c : i = " << c->i << " j = " << c->j << std::endl;
-    // if (d) {
-    //     std::cout << "task d : i = " << d->i << " j = " << d->j << std::endl;
-    // }
-    // std::cout << "/////////////////" << std::endl;
-    // if (is_L) {
-    //     std::cout << "L iterations" << std::endl;
-    // } else {
-    //     std::cout << "W iterations" << std::endl;
-    // }
-    // std::cout << "p0 = " << p0 << std::endl;
-
     while (was_change) {
-        // if (is_L) {
-        //     std::cout << "current L = " << res << std::endl;
-        // } else {
-        //     std::cout << "current W = " << res << std::endl;
-        // }
-        // std::cout << "Z:\n";
-        // for (int i = 0; i < z.size(); i++) {
-        //     std::cout << "\tz[" << i << "] = " << z[i] << std::endl; 
-        // }
-        // std::cout << "\tz_u = " << z_u << std::endl; 
-        // std::cout << "//////\n";
-        // std::cout << "I:\n";
-        // for (int i = 0; i < z.size(); i++) {
-        //     std::cout << "\tI[" << i << "] = " << I[i] << std::endl; 
-        // }
-        // std::cout << "\tI_u = " << I_u << std::endl; 
-        // std::cout << "######\n";
         was_change = false;
         int a = target->i;
-        int new_I = 0;
         for (int i = 0; i < size; i++) {
             if (i != a) {
-                new_I = approximation_func(target->hp[i], res);
-                // if (I[i] != new_I) was_change = true;
-                I[i] = new_I;
+                I[i] = approximation_func(target->hp[i], res);
             }
         }
-        // new_I = approximation_func(G_u[part_id], res);
-        // if (I_u != new_I) was_change = true;
-        // I_u = new_I;
+        float I_ac = interference(target->hp[a], c, res);
+        float I_ud = interference(G_u[part_id], d, res);
 
-        
-        int I_ac = interference(target->hp[a], c, res);
-        int I_ud = interference(G_u[part_id], d, res);
-
-        int sum = 0;
+        float sum = 0;
         for (int i = 0; i < size; i++) {
             if (i != a) sum += I[i];
         }
 
-        int old_L = res;
-        int term = is_L ? upper(res - delta, target->T) : p;
-        // if (term < 50 and term > -50) {
-        //     std::cout << "term = " << term << std::endl;
-        // }
+        float old_L = res;
+        int term = is_L ? (int)ceil( (res - delta) / target->T ) : p;
+
         res = (term - p0 + 1) * target->wcet + I_ac + I_ud + sum;
-        // std::cout << "res = " << res << std::endl;
-        if (old_L != res) was_change = true;
-        // for (int i = 0; i < size; i++) {
-        //     z[i] = res - I[i];
-        // }
-        // z_u = res - I_u;
+        if (abs(old_L - res) > eps) was_change = true;
     }
-    // std::cout << "/////////////////" << std::endl;
     return res;
 }
 
 
-int Rabcd(Task* target, Task* c, Task* d, int p, int p0, int delta, int size, WinType &G_u) {
-    int W = compute_L_or_Wabcd(target, c, d, p, p0, delta, size, false, G_u);
+float Rabcd(Task* target, Task* c, Task* d, int p, int p0, float delta, int size, WinType &G_u) {
+    float W = compute_L_or_Wabcd(target, c, d, p, p0, delta, size, false, G_u);
     return W - delta - (p - 1) * target->T + target->phi;
 }
 
 
-int R_max_p(Task* target, Task* c, Task* d, int p0, int delta, int size, WinType &G_u) {
-    int L = compute_L_or_Wabcd(target, c, d, 1, p0, delta, size, true, G_u);
-    int pL = upper(L - delta, target->T);
-    int max_p = 0;
-    int R = 0;
+float R_max_p(Task* target, Task* c, Task* d, int p0, float delta, int size, WinType &G_u) {
+    float L = compute_L_or_Wabcd(target, c, d, 1, p0, delta, size, true, G_u);
+    int pL = (int)ceil((L - delta) / target->T);
+    float max_p = 0;
+    float R = 0;
     for (int p = p0; p <= pL; p++) {
         R = Rabcd(target, c, d, p, p0, delta, size, G_u);
         if (max_p < R) max_p = R;
@@ -383,12 +326,12 @@ int R_max_p(Task* target, Task* c, Task* d, int p0, int delta, int size, WinType
 }
 
 
-int R_max_d(Task* target, Task* c, int size, WinType &G_u) {
-    int delta = delta_ijk(target, c);
-    int p0 = - ((target->J + delta) / target->T) + 1;
-    int R = 0;
+float R_max_d(Task* target, Task* c, int size, WinType &G_u) {
+    float delta = delta_ijk(target, c);
+    int p0 = - (int)floor((target->J + delta) / target->T) + 1;
+    float R = 0;
     int part_id = target->part_id;
-    int max_d = 0;
+    float max_d = 0;
     if (G_u[part_id].size() == 0) {
         R = R_max_p(target, c, nullptr, p0, delta, size, G_u);
     } else {
@@ -401,9 +344,10 @@ int R_max_d(Task* target, Task* c, int size, WinType &G_u) {
     return R;
 }
 
-int R_max_c(Task* target, int size, WinType &G_u) {
-    int max_c = 0;
-    int R = 0;
+
+float R_max_c(Task* target, int size, WinType &G_u) {
+    float max_c = 0;
+    float R = 0;
     int a = target->i;
     for (auto & c : target->hp[a]) {
         R = R_max_d(target, c.second, size, G_u);
@@ -416,8 +360,8 @@ int R_max_c(Task* target, int size, WinType &G_u) {
 }
 
 
-int Rab(Task* target, int size, WinType &G_u) {
-    int R = R_max_c(target, size, G_u);
+float Rab(Task* target, int size, WinType &G_u) {
+    float R = R_max_c(target, size, G_u);
     return R;
 }
 
@@ -425,7 +369,7 @@ int Rab(Task* target, int size, WinType &G_u) {
 void update_jitters(std::vector<std::unordered_map<int, Task*>> &graphs) {
     for (auto & graph : graphs) {
         for (auto & task : graph) {
-            int max_R = 0;
+            float max_R = 0;
             for (auto & pred : task.second->predecessors) {
                 if (max_R < pred->R) {
                     max_R = pred->R;
@@ -445,11 +389,10 @@ void WCDO(std::vector<std::unordered_map<int, Task*>> &graphs, WinType &G_u) {
         std::cout << "it = " << it << std::endl;
         for (auto & graph : graphs) {
             for (auto & task : graph) {
-                // std::cout << "CURRENT task: i = " << task.second->i << "  j = " << task.second->j << std::endl;
-                int R_ab = Rab(task.second, graphs.size(), G_u);
-                int old_R = task.second->R;
+                float R_ab = Rab(task.second, graphs.size(), G_u);
+                float old_R = task.second->R;
                 task.second->R = R_ab;
-                if (task.second->R != old_R) was_change = true;
+                if (abs(task.second->R - old_R) > eps) was_change = true;
             }
         }
         update_jitters(graphs);
