@@ -13,7 +13,7 @@ Task::Task(int i, int j, int major_frame, int part_id, int priority,
 
 
 void Task::print() {
-    printf("t%d,%d: phi = %f, J = %f, R = %f, R^b = %f, T = %f\n", 
+    printf("t%d,%d: phi = %g, J = %g, R = %g, R^b = %g, T = %g\n", 
             i, j, phi, J, R, R_b, T);
     // std::cout << "major_frame = " << major_frame << std::endl;
     // std::cout << "part_id = " << part_id << std::endl;
