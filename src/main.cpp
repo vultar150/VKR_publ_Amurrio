@@ -66,7 +66,9 @@ int main(int argc, char *argv[]) {
     std::cout << "Graphs info: /////////////////////////" << std::endl;
     for (auto & graph : graphs) {
         for (auto & task : graph) {
-            task.second->print();
+            if (not task.second->isMessage) {
+                task.second->print();
+            }
         }
         std::cout << std::endl;
     }
