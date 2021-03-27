@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include <cmath>
+#include <fstream>
 #include <ctime>
 
 #include "classes.h"
@@ -40,6 +41,16 @@ int main(int argc, char *argv[]) {
 
     WCDO(graphs, G_u);
 
+    time = clock() - time;
+
+    std::ofstream fout("output.txt", std::ios::app);
+    fout << "WCRT = " << tasks[targetTask]->R << std::endl;
+    fout << "Period = " << tasks[targetTask]->T << std::endl;
+    fout << "Task num = " << targetTask << std::endl;
+    fout << "Time = " << static_cast<float>(time)/CLOCKS_PER_SEC << std::endl;
+    fout << std::endl;
+    fout.close();
+
     // std::cout << "G_u info: /////////////////////////" << std::endl;
     // for (auto & part : G_u) {
     //     std::cout << "partition id = " << part.first << std::endl;
@@ -59,6 +70,12 @@ int main(int argc, char *argv[]) {
         }
         std::cout << std::endl;
     }
+
+    std::cout << std::endl;
+    std::cout << "WCRT = " << tasks[targetTask]->R << std::endl;
+    std::cout << "Period = " << tasks[targetTask]->T << std::endl;
+    std::cout << "Task num = " << targetTask << std::endl;
+    std::cout << "Time = " << static_cast<float>(time)/CLOCKS_PER_SEC << std::endl;
 
     for (auto & task : tasks) {
         delete task.second;
