@@ -25,6 +25,8 @@ add_executable(VKR_publ_Amurrio
   src/tinyxml2.h
 )
 
-#add_executable(VKR_publ_Amurrio
-#  src/main.cpp
-#)
+add_executable(generator
+  src/generator.cpp
+  src/tinyxml2.cpp
+  src/tinyxml2.h
+)
