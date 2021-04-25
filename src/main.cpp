@@ -63,21 +63,34 @@ int main(int argc, char *argv[]) {
     // std::cout << std::endl;
     // std::cout << std::endl;
 
+    int averageWCRT = 0;
+    int count = 0;
+    bool schedulability = true;
+
     std::cout << "Graphs info: /////////////////////////" << std::endl;
     for (auto & graph : graphs) {
         for (auto & task : graph) {
             if (not task.second->isMessage) {
                 task.second->print();
+                averageWCRT += task.second->R;
+                if (task.second->R > task.second->T) {
+                    schedulability = false;
+                }
+                count++;
             }
         }
         std::cout << std::endl;
     }
+    averageWCRT /= count;
 
     std::cout << std::endl;
     std::cout << "WCRT = " << tasks[targetTask]->R << std::endl;
     std::cout << "Period = " << tasks[targetTask]->T << std::endl;
     std::cout << "Task num = " << targetTask << std::endl;
     std::cout << "Time = " << static_cast<float>(time)/CLOCKS_PER_SEC << std::endl;
+    std::cout << "Schedulability: " << schedulability << std::endl;
+    std::cout << "Number of tasks: " << count << std::endl;
+    std::cout << "Average WCRT: " << averageWCRT << std::endl;
 
     for (auto & task : tasks) {
         delete task.second;
