@@ -5,6 +5,7 @@
 #include <cmath>
 #include <fstream>
 #include <ctime>
+#include <map>
 
 #include "classes.h"
 #include "functions.h"
@@ -64,33 +65,47 @@ int main(int argc, char *argv[]) {
     // std::cout << std::endl;
 
     int averageWCRT = 0;
+    int maxWCRT = 0;
     int count = 0;
     bool schedulability = true;
+    int countUnschTasks = 0;
 
-    std::cout << "Graphs info: /////////////////////////" << std::endl;
+    std::map<int, int> wcrts;
+    // std::cout << "Graphs info: /////////////////////////" << std::endl;
     for (auto & graph : graphs) {
         for (auto & task : graph) {
             if (not task.second->isMessage) {
-                task.second->print();
+                // task.second->print();
+                if (maxWCRT < task.second->R) {
+                    maxWCRT = task.second->R;
+                }
                 averageWCRT += task.second->R;
                 if (task.second->R > task.second->T) {
                     schedulability = false;
+                    countUnschTasks++;
                 }
                 count++;
+                wcrts[task.second->j] = task.second->R;
             }
         }
-        std::cout << std::endl;
+        // std::cout << std::endl;
     }
     averageWCRT /= count;
 
-    std::cout << std::endl;
-    std::cout << "WCRT = " << tasks[targetTask]->R << std::endl;
-    std::cout << "Period = " << tasks[targetTask]->T << std::endl;
-    std::cout << "Task num = " << targetTask << std::endl;
-    std::cout << "Time = " << static_cast<float>(time)/CLOCKS_PER_SEC << std::endl;
-    std::cout << "Schedulability: " << schedulability << std::endl;
-    std::cout << "Number of tasks: " << count << std::endl;
+    for (auto task : wcrts) {
+        std::cout << "t_" << task.first << "  R = " << task.second << std::endl;
+    }
+
+    // std::cout << std::endl;
+    // std::cout << "WCRT = " << tasks[targetTask]->R << std::endl;
+    // std::cout << "Period = " << tasks[targetTask]->T << std::endl;
+    // std::cout << "Task num = " << targetTask << std::endl;
+    // std::cout << "Time = " << static_cast<float>(time)/CLOCKS_PER_SEC << std::endl;
+    // std::cout << "Schedulability: " << schedulability << std::endl;
+    // std::cout << "Number of tasks: " << count << std::endl;
+    // std::cout << "Number of unsched tasks: " << countUnschTasks << std::endl;
     std::cout << "Average WCRT: " << averageWCRT << std::endl;
+    std::cout << "max WCRT: " << maxWCRT << std::endl;
 
     for (auto & task : tasks) {
         delete task.second;

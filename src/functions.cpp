@@ -386,7 +386,7 @@ void WCDO(std::vector<std::unordered_map<int, Task*>> &graphs, WinType &G_u) {
     int it = 0;
     while (was_change) {
         was_change = false;
-        std::cout << "it = " << it << std::endl;
+        // std::cout << "it = " << it << std::endl;
         for (auto & graph : graphs) {
             for (auto & task : graph) {
                 float R_ab = Rab(task.second, graphs.size(), G_u);
